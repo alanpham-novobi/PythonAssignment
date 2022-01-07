@@ -132,11 +132,3 @@ def knight_journey(filename):
         knight_attributes[0], knight_attributes[1], knight_attributes[2], events)
     code = knight.traveling()
     return ''.join(map(str, code))
-
-
-if __name__ == '__main__':
-    code = knight_journey('input.txt')
-    if code:
-        print(code)
-    else:
-        print('Empty code')

@@ -1,0 +1,1 @@
+Correct solution. Expected: 1. Output: 1
