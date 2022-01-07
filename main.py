@@ -20,7 +20,6 @@ class Knight:
         self.idx = 0
         for e in self.events:
             self.idx += 1
-            self.success = True
             if e == 0:
                 self.event_s1(e)
                 break
@@ -30,28 +29,33 @@ class Knight:
                 self.event_s3(e)
             elif e == 8:
                 self.event_s4(e)
-        if self.success:
-            return self.ec
-        else:
-            return ''
+            else:               # Handle non-existed event
+                continue
+            print('EC\'s code: ' + ''.join(map(str, self.ec)))
+            if not self.success:
+                return ''
+        return self.ec
 
     def event_s1(self, e):
+        print('event s1: ' + str(e))
         self.success = True
 
     def event_s2(self, e):
+        print('event s2: ' + str(e))
         b = self.idx % 10
         levelO = ((b if b > 5 else 5) if (self.idx > 6) else b)
         ringsignO = e % 10
 
         if self.level > levelO:
-            self.ringsign = (
-                self.ringsign + ringsignO) if (self.ringsign + ringsignO) <= 9 else 9
+            print('win .......')
             self.ec += [ringsignO]
             if e // 10 == 9:
                 self.event_a3()
         elif self.level < levelO:
+            print('lose .........')
             self.hp = int(
                 self.hp - self.opponents_baseDamage[e//10]*levelO*10)
+            print(self.hp)
             if (self.hp <= 0):
                 self.success = False
 
@@ -64,50 +68,60 @@ class Knight:
                 self.event_a3(option=False, ringsign=ringsignO)
 
     def event_s3(self, e):
-        self.ringsign = 0
-        digit = self.ec[::-1]
+        print('event s3: ' + str(e))
+        # What if EC Code is Empty ???? (After event 5XX)
+        digit = self.ec[::-1] if self.ec else [0]
         adding = [0] * len(digit)
         adding[0] = e % 10
         result = [x + y for x, y in zip(digit, adding)]
         mem = 0
         temp = []
-        for i in result:
-            if i != result[-1]:
-                temp.append((i + mem) % 10)
-                if i >= 10:
+        for i in range(len(result)):
+            if i != len(result) - 1:
+                temp.append((result[i] + mem) % 10)
+                if (result[i] + mem) >= 10:
                     mem = 1
                 else:
                     mem = 0
             else:
-                temp.append(i + mem)
+                if (result[i] + mem) < 10:
+                    temp.append(result[i] + mem)
+                else:
+                    temp.append((result[i] + mem) % 10)
+                    temp.append((result[i] + mem) // 10)
         self.ec = temp[::-1]
 
-    def event_s4(self, s):
-        if (self.hp < 999):
-            self.ec, exchange_ringsign = self.ec[:-1], self.ec[-1]
-            self.ringsign = (self.ringsign - int(exchange_ringsign)
-                             ) if (self.ringsign - int(exchange_ringsign)) > 0 else 0
+    def event_s4(self, e):
+        print('event s4: ' + str(e))
+        if (self.hp < 999 and len(self.ec) > 0):
+            del self.ec[-1]
             self.hp = 999
 
     def event_a1(self, ringsignO):
+        print('event a1')
         temp = self.ec[::-1]
-        remove_idx = temp.index(ringsignO)
-        del temp[remove_idx]
-        self.ec = temp[::-1]
+        try:
+            remove_idx = temp.index(ringsignO)
+            del temp[remove_idx]
+            self.ec = temp[::-1]
+        except:
+            print('Knight loses to Gollum and not found ringsign with its same number.')
 
     def event_a2(self):
+        print('event a2:')
         if len(self.ec) > 3:
             self.ec = self.ec[3:]
-            print(self.ec)
         else:
             self.ec.clear()
 
     def event_a3(self, option=True, ringsignO=0):
+        print('event a3:')
         if option:
             self.ec = self.ec[::-1]
         else:
-            self.ringsign = (
-                self.ringsign - ringsignO) if (self.ringsign - ringsignO) > 0 else 0
+            print('temp')
+            # self.ringsign = (
+            #     self.ringsign - ringsignO) if (self.ringsign - ringsignO) > 0 else 0
 
 
 def read_file(filename):
@@ -132,3 +146,11 @@ def knight_journey(filename):
         knight_attributes[0], knight_attributes[1], knight_attributes[2], events)
     code = knight.traveling()
     return ''.join(map(str, code))
+
+
+if __name__ == '__main__':
+    code = knight_journey('input.txt')
+    if code:
+        print(code)
+    else:
+        print('Empty code')
