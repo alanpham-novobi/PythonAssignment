@@ -65,7 +65,6 @@ class Knight:
                 self.event_a3(win=False, ringsignO=ringsignO)
 
     def event_s3(self, e):
-        # What if EC Code is Empty ???? (After event 5XX)
         digit = self.ec[::-1] if self.ec else [0]
         adding = [0] * len(digit)
         adding[0] = e % 10
