@@ -1,0 +1,1 @@
+Correct solution. Expected: 8572. Output: 8572

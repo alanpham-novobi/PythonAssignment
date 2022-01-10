@@ -20,42 +20,39 @@ class Knight:
         self.idx = 0
         for e in self.events:
             self.idx += 1
-            if e == 0:
-                self.event_s1(e)
-                break
-            elif (e // 10) in [1, 2, 3, 4, 5, 6, 9]:
-                self.event_s2(e)
-            elif (e // 10) == 7:
-                self.event_s3(e)
-            elif e == 8:
-                self.event_s4(e)
-            else:               # Handle non-existed event
+            if e < 100:
+                if e == 0:
+                    self.event_s1(e)
+                    break
+                elif (e // 10) in [1, 2, 3, 4, 5, 6, 9]:
+                    self.event_s2(e)
+                elif (e // 10) == 7:
+                    self.event_s3(e)
+                elif e == 8:
+                    self.event_s4(e)
+                else:               # Handle non-existed event
+                    continue
+            else:
                 continue
-            print('EC\'s code: ' + ''.join(map(str, self.ec)))
             if not self.success:
                 return ''
         return self.ec
 
     def event_s1(self, e):
-        print('event s1: ' + str(e))
         self.success = True
 
     def event_s2(self, e):
-        print('event s2: ' + str(e))
         b = self.idx % 10
         levelO = ((b if b > 5 else 5) if (self.idx > 6) else b)
         ringsignO = e % 10
 
         if self.level > levelO:
-            print('win .......')
             self.ec += [ringsignO]
-            if e // 10 == 9:
-                self.event_a3()
+            if (e // 10) == 9:
+                self.event_a3(win=True, ringsignO=ringsignO)
         elif self.level < levelO:
-            print('lose .........')
             self.hp = int(
                 self.hp - self.opponents_baseDamage[e//10]*levelO*10)
-            print(self.hp)
             if (self.hp <= 0):
                 self.success = False
 
@@ -65,10 +62,9 @@ class Knight:
             elif (e // 10) == 5:
                 self.event_a2()
             elif (e // 10) == 9:
-                self.event_a3(option=False, ringsign=ringsignO)
+                self.event_a3(win=False, ringsignO=ringsignO)
 
     def event_s3(self, e):
-        print('event s3: ' + str(e))
         # What if EC Code is Empty ???? (After event 5XX)
         digit = self.ec[::-1] if self.ec else [0]
         adding = [0] * len(digit)
@@ -92,36 +88,32 @@ class Knight:
         self.ec = temp[::-1]
 
     def event_s4(self, e):
-        print('event s4: ' + str(e))
         if (self.hp < 999 and len(self.ec) > 0):
             del self.ec[-1]
             self.hp = 999
 
     def event_a1(self, ringsignO):
-        print('event a1')
         temp = self.ec[::-1]
         try:
-            remove_idx = temp.index(ringsignO)
-            del temp[remove_idx]
+            temp.remove(ringsignO)
             self.ec = temp[::-1]
         except:
-            print('Knight loses to Gollum and not found ringsign with its same number.')
+            pass
 
     def event_a2(self):
-        print('event a2:')
         if len(self.ec) > 3:
             self.ec = self.ec[3:]
         else:
             self.ec.clear()
 
-    def event_a3(self, option=True, ringsignO=0):
-        print('event a3:')
-        if option:
+    def event_a3(self, win=True, ringsignO=0):
+        if win:
             self.ec = self.ec[::-1]
         else:
-            print('temp')
-            # self.ringsign = (
-            #     self.ringsign - ringsignO) if (self.ringsign - ringsignO) > 0 else 0
+            try:
+                self.ec = list(filter(lambda x: x != ringsignO, self.ec))
+            except:
+                pass
 
 
 def read_file(filename):
@@ -137,9 +129,29 @@ def read_file(filename):
             events += line.split(' ')
 
         events = [int(x.replace('\n', '')) for x in events]
+    # Handle error input
+    if knight_attributes[0] not in range(0, 1000, 1):
+        raise ValueError(
+            "invalid knight's HP. Knight's HP must between 0 and 999")
+    if knight_attributes[1] not in range(1, 11, 1):
+        raise ValueError(
+            "invalid knight's level. Knight's level must between 1 and 10")
+    if knight_attributes[2] not in range(0, 10, 1):
+        raise ValueError(
+            "invalid knight's ringsign. Knight's ringsign must between 0 and 9")
     return knight_attributes, events
 
 
+def error(func):
+    def handlingError(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print(e)
+    return handlingError
+
+
+@error
 def knight_journey(filename):
     knight_attributes, events = read_file(filename)
     knight = Knight(
@@ -153,4 +165,4 @@ if __name__ == '__main__':
     if code:
         print(code)
     else:
-        print('Empty code')
+        print('empty code')
